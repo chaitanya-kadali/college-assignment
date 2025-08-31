@@ -18,7 +18,7 @@ main {
 
 h1 {
   text-align: center;
-  color: #2c3e50;
+  color: #f36828;
   margin-bottom: 1.2rem;
 }
 
@@ -59,11 +59,11 @@ input[type="file"]:focus {
   outline: none;
   background: #fff;
 }
-
+  
 /* Buttons */
 button {
   display: inline-block;
-  background: #4a90e2;
+  background: #f1691a;
   color: white;
   padding: 0.6rem 1.2rem;
   font-size: 0.95rem;
@@ -73,12 +73,11 @@ button {
   margin: 0.4rem 0.3rem 0 0;
   transition: background 0.2s;
 }
-button:hover { background: #357ab8; }
-button:active { background: #2c5d8a; }
+button:hover { background: #d85d24; }
+button:active { background: #d97427; }
 
 button.secondary { background: #27ae60; }
 button.secondary:hover { background: #1e8449; }
-button.warn { background: #e74c3c; }
-button.warn:hover { background: #c0392b; }
+button.warn { background: #c02b2b; }
+button.warn:hover { background: #600404; }
 
-/

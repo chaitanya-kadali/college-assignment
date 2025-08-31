@@ -64,7 +64,7 @@ div > label {
 
 /* Buttons */
 button {
-  background: #4a90e2;
+  background: #0e57aa;
   color: white;
   padding: 0.6rem 1.2rem;
   font-size: 0.95rem;
@@ -86,19 +86,19 @@ button:active {
 
 /* Secondary buttons */
 #clearBtn {
-  background: #e74c3c;
+  background: #c70202;
 }
 #clearBtn:hover {
-  background: #c0392b;
+  background: #9e1000;
 }
 
 #copyBtn,
 #downloadBtn {
-  background: #27ae60;
+  background: #d85d24;
 }
 #copyBtn:hover,
 #downloadBtn:hover {
-  background: #1e8449;
+  background: #a0451b;
 }
 
 /* Output area */
