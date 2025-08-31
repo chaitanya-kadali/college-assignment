@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vigenère Cipher — HTML version</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app" aria-labelledby="title">
+    <h1 id="title">Vigenère Cipher</h1>
+
+    <form id="vigenereForm" onsubmit="return false;" aria-describedby="desc">
+      <p id="desc">Enter text manually or upload a file, choose a key, and select Encrypt or Decrypt.</p>
+
+      <label for="mode">Mode</label>
+      <div>
+        <label><input type="radio" name="mode" value="encrypt" id="modeEncrypt" checked> Encrypt</label>
+        <label><input type="radio" name="mode" value="decrypt" id="modeDecrypt"> Decrypt</label>
+      </div>
+
+      <label for="inputText">Input text</label>
+      <textarea id="inputText" rows="6" placeholder="Type plain text (encrypt) or cipher text (decrypt) here"></textarea>
+
+      <!-- File upload -->
+      <label for="fileInput">Or upload a text file</label>
+      <input id="fileInput" type="file" accept=".txt" />
+
+      <label for="keyInput">Key</label>
+      <input id="keyInput" type="text" inputmode="latin" placeholder="Alphabetic key (e.g. KEY)" />
+
+      <div style="margin-top:0.5rem;">
+        <button id="runBtn" type="button">Run</button>
+        <button id="clearBtn" type="button">Clear</button>
+      </div>
+
+      <label for="outputText">Output</label>
+      <textarea id="outputText" rows="6" readonly placeholder="Result appears here"></textarea>
+
+      <div style="margin-top:0.5rem;">
+        <button id="copyBtn" type="button">Copy Output</button>
+        <button id="downloadBtn" type="button">Download .txt</button>
+      </div>
+
+      <p style="font-size:.9rem; color:#555; margin-top:.6rem;">
+        Notes: Key is alphabetic (A–Z). Non-letter characters in the text are preserved. Case is preserved.
+      </p>
+    </form>
+  </main>
+
+  <script>
+    // Utility: convert key to shifts
+    function keyToShifts(key) {
+      const shifts = [];
+      for (let i = 0; i < key.length; i++) {
+        const ch = key[i];
+        if (/[A-Za-z]/.test(ch)) {
+          shifts.push(ch.toUpperCase().charCodeAt(0) - 65);
+        }
+      }
+      return shifts;
+    }
+
+    // Shift single letter
+    function shiftLetter(letter, shift, mode) {
+      const isUpper = letter === letter.toUpperCase();
+      const baseCode = isUpper ? 65 : 97;
+      const code = letter.charCodeAt(0) - baseCode;
+      if (mode === 'encrypt') {
+        return String.fromCharCode(((code + shift) % 26) + baseCode);
+      } else {
+        return String.fromCharCode(((code - shift + 26) % 26) + baseCode);
+      }
+    }
+
+    // Main Vigenere function
+    function vigenereTransform(text, key, mode) {
+      if (!key || key.length === 0) return '';
+      const shifts = keyToShifts(key);
+      if (shifts.length === 0) return '';
+
+      let out = '';
+      let keyIndex = 0;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (/[A-Za-z]/.test(ch)) {
+          const shift = shifts[keyIndex % shifts.length];
+          out += shiftLetter(ch, shift, mode);
+          keyIndex++;
+        } else {
+          out += ch;
+        }
+      }
+      return out;
+    }
+
+    // DOM handling
+    const inputText = document.getElementById('inputText');
+    const keyInput = document.getElementById('keyInput');
+    const outputText = document.getElementById('outputText');
+    const runBtn = document.getElementById('runBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const fileInput = document.getElementById('fileInput');
+
+    function getMode() {
+      return document.querySelector('input[name="mode"]:checked').value;
+    }
+
+    runBtn.addEventListener('click', () => {
+      const text = inputText.value;
+      const key = keyInput.value;
+      const mode = getMode();
+
+      if (!text) {
+        outputText.value = '';
+        alert('Please enter some input text.');
+        return;
+      }
+      if (!/.*[A-Za-z].*/.test(key)) {
+        outputText.value = '';
+        alert('Please enter a key containing at least one alphabetic character (A-Z).');
+        return;
+      }
+
+      const result = vigenereTransform(text, key, mode);
+      outputText.value = result;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      inputText.value = '';
+      keyInput.value = '';
+      outputText.value = '';
+      fileInput.value = '';
+      document.getElementById('modeEncrypt').checked = true;
+      inputText.focus();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const val = outputText.value;
+      if (!val) { alert('Nothing to copy.'); return; }
+      try {
+        await navigator.clipboard.writeText(val);
+        alert('Output copied to clipboard.');
+      } catch (e) {
+        outputText.select();
+        document.execCommand('copy');
+        alert('Output copied (fallback).');
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const val = outputText.value;
+      if (!val) { alert('Nothing to download.'); return; }
+      const blob = new Blob([val], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (getMode() === 'encrypt' ? 'vigenere_encrypted.txt' : 'vigenere_decrypted.txt');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // File upload → load into textarea
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        inputText.value = e.target.result;
+      };
+      reader.readAsText(file);
+    });
+
+    // Allow Ctrl+Enter to run
+    inputText.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') runBtn.click();
+    });
+
+    window.addEventListener('load', () => {
+      inputText.focus();
+    });
+  </script>
+</body>
+</html>
