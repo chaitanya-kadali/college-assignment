@@ -2,50 +2,496 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CNS Assignment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNS Assignment - Cryptography & Security</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #f5f5f5;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .container {
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 50%, #f55a3c 100%);
+      min-height: 100vh;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    /* Animated background particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+      50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border-bottom: 2px solid rgba(255, 107, 53, 0.2);
+      z-index: 1000;
+      padding: 20px 0;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 30px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .nav-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+      position: relative;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    }
+
+    .nav-btn:hover::before {
+      left: 100%;
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(45deg, #f55a3c, #e74c3c);
+      transform: translateY(-2px);
+    }
+
+    /* Main content */
+    .main-content {
+      margin-top: 120px;
+      min-height: calc(100vh - 120px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .welcome-section {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      padding: 60px 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      max-width: 800px;
+      animation: slideIn 1s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome-title {
+      font-size: 48px;
+      font-weight: 700;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .welcome-subtitle {
+      font-size: 24px;
+      color: #666;
+      margin-bottom: 30px;
+      font-weight: 300;
+    }
+
+    .welcome-description {
+      font-size: 18px;
+      color: #777;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 107, 53, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      border-color: rgba(255, 107, 53, 0.4);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 24px;
+      color: white;
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+    }
+
+    .feature-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .feature-description {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .content-section {
+      display: none;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      max-width: 1000px;
+      width: 100%;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 30px;
       text-align: center;
     }
-    button {
-      margin: 10px;
-      padding: 12px 24px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #4CAF50;
-      color: white;
-      transition: background 0.3s;
+
+    .placeholder-content {
+      text-align: center;
+      padding: 60px 20px;
     }
-    button:hover {
-      background: #45a049;
+
+    .placeholder-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+      font-size: 36px;
+      color: white;
+      box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+    }
+
+    .placeholder-text {
+      font-size: 18px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 20px;
+        padding: 0 20px;
+      }
+
+      .nav-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .welcome-title {
+        font-size: 36px;
+      }
+
+      .welcome-section {
+        padding: 40px 20px;
+        margin: 0 20px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glow effects */
+    .glow {
+      position: relative;
+    }
+
+    .glow::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #ff6b35, #f55a3c, #ff6b35);
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .glow:hover::after {
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <button onclick="openPage('vigenere-cipher/index.html')"> Vigenere Cipher </button>
-    <button onclick="openPage('steganography/index.html')">Steganography</button>
-    <button onclick="openPage('secure-hash-algo-SHA-1/index.html')">SHA 1</button>
-  </div>
+  <!-- Animated background particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Fixed Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">🔐 CNS Assignment</div>
+      <nav class="nav-buttons">
+        <button class="nav-btn glow" onclick="openPage('vigenere-cipher/index.html')">🔤 Vigenère Cipher</button>
+        <button class="nav-btn glow" onclick="openPage('steganography/index.html')">🖼️ Steganography</button>
+        <button class="nav-btn glow" onclick="openPage('secure-hash-algo-SHA-1/index.html')">🔒 SHA-1</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Welcome Section -->
+    <section id="home-section" class="welcome-section">
+      <h1 class="welcome-title">Cryptography & Network Security</h1>
+      <p class="welcome-subtitle">Advanced Encryption & Security Algorithms</p>
+      <p class="welcome-description">
+        Explore the fascinating world of cryptography through interactive implementations of classical and modern encryption techniques. 
+        Select any encryption method below to begin your journey into the realm of secure communications.
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature-card glow" onclick="openPage('vigenere-cipher/index.html')">
+          <div class="feature-icon">🔤</div>
+          <h3 class="feature-title">Vigenère Cipher</h3>
+          <p class="feature-description">
+            Classical polyalphabetic substitution cipher using a repeating keyword for enhanced security over simple ciphers.
+          </p>
+        </div>
+
+        <div class="feature-card glow" onclick="openPage('steganography/index.html')">
+          <div class="feature-icon">🖼️</div>
+          <h3 class="feature-title">Steganography</h3>
+          <p class="feature-description">
+            Hide secret messages within images using advanced steganographic techniques for covert communication.
+          </p>
+        </div>
+
+        <div class="feature-card glow" onclick="openPage('secure-hash-algo-SHA-1/index.html')">
+          <div class="feature-icon">🔒</div>
+          <h3 class="feature-title">SHA-1 Algorithm</h3>
+          <p class="feature-description">
+            Secure Hash Algorithm producing 160-bit hash values for data integrity and digital signatures.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vigenère Cipher Section -->
+    <section id="vigenere-section" class="content-section">
+      <h2 class="section-title">Vigenère Cipher</h2>
+      <div class="placeholder-content">
+        <div class="placeholder-icon">🔤</div>
+        <p class="placeholder-text">
+          The Vigenère cipher implementation will be loaded here.<br>
+          This classical encryption method uses a repeating keyword to encrypt plaintext,<br>
+          providing stronger security than simple substitution ciphers.
+        </p>
+      </div>
+    </section>
+
+    <!-- Steganography Section -->
+    <section id="steganography-section" class="content-section">
+      <h2 class="section-title">Steganography</h2>
+      <div class="placeholder-content">
+        <div class="placeholder-icon">🖼️</div>
+        <p class="placeholder-text">
+          The steganography tool will be loaded here.<br>
+          Hide secret messages within digital images using advanced<br>
+          least significant bit manipulation techniques.
+        </p>
+      </div>
+    </section>
+
+    <!-- SHA-1 Section -->
+    <section id="sha1-section" class="content-section">
+      <h2 class="section-title">SHA-1 Hash Algorithm</h2>
+      <div class="placeholder-content">
+        <div class="placeholder-icon">🔒</div>
+        <p class="placeholder-text">
+          The SHA-1 hash generator will be loaded here.<br>
+          Generate secure 160-bit hash values for data integrity<br>
+          verification and digital signature applications.
+        </p>
+      </div>
+    </section>
+  </main>
 
   <script>
+    // Create animated background particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 50;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        const size = Math.random() * 4 + 2;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    // Original navigation function - CRUCIAL for file navigation
     function openPage(path) {
       // Open in same tab
       window.location.href = path;
-
+      
       // If you prefer opening in a new tab, use:
       // window.open(path, "_blank");
     }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      createParticles();
+      showSection('home'); // Show home by default
+      
+      // Add smooth transitions
+      document.body.style.opacity = '0';
+      setTimeout(() => {
+        document.body.style.transition = 'opacity 0.5s ease-in-out';
+        document.body.style.opacity = '1';
+      }, 100);
+    });
+
+    // Add floating animation to feature cards
+    document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('.feature-card');
+      cards.forEach((card, index) => {
+        card.style.animationDelay = (index * 0.2) + 's';
+        card.style.animation = 'slideIn 0.8s ease-out forwards';
+      });
+    });
+
+    // Parallax effect for header
+    window.addEventListener('scroll', function() {
+      const scrolled = window.pageYOffset;
+      const header = document.querySelector('.header');
+      const opacity = Math.max(0.95 - scrolled * 0.001, 0.8);
+      header.style.background = `rgba(255, 255, 255, ${opacity})`;
+    });
   </script>
 </body>
 </html>
