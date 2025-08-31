@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SHA-1 Hash Tool</title>
+  <link rel="stylesheet" href="sha1.css">
+</head>
+<body>
+  <main>
+    <h1>SHA-1 Message Digest Tool</h1>
+    <p class="meta">Enter a message or upload a file to generate its SHA-1 digest.</p>
+
+    <!-- Text hashing -->
+    <label for="textInput">Enter Message</label>
+    <textarea id="textInput" placeholder="Type message here..."></textarea>
+    <div class="controls">
+      <button id="hashTextBtn">Generate Digest</button>
+      <button id="clearTextBtn" class="ghost">Clear</button>
+    </div>
+
+    <!-- File hashing -->
+    <label for="fileInput" style="margin-top:1rem;">Or Select File</label>
+    <input id="fileInput" type="file" />
+    <div class="controls">
+      <button id="hashFileBtn">Generate Digest</button>
+      <button id="clearFileBtn" class="ghost">Clear</button>
+    </div>
+    <div id="fileInfo" class="small"></div>
+
+    <!-- Digest output (hidden initially) -->
+    <div id="digestSection" class="outputs hidden" aria-live="polite">
+      <h2>Message Digest (SHA-1)</h2>
+      <div id="hexOutput" class="outputBox">—</div>
+      <div class="controls">
+        <button id="copyHexBtn" class="secondary">Copy Hex</button>
+        <button id="downloadHexBtn" class="ghost">Download</button>
+      </div>
+      <div id="status" class="small"></div>
+    </div>
+  </main>
+
+  <script>
+    // Helpers
+    function toHex(buffer) {
+      return [...new Uint8Array(buffer)]
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+    async function sha1ArrayBuffer(buffer) {
+      return await crypto.subtle.digest('SHA-1', buffer);
+    }
+    function setStatus(msg, isError=false) {
+      const status = document.getElementById('status');
+      status.textContent = msg;
+      status.style.color = isError ? "#b91c1c" : "#374151";
+    }
+
+    // DOM refs
+    const digestSection = document.getElementById('digestSection');
+    const textInput = document.getElementById('textInput');
+    const fileInput = document.getElementById('fileInput');
+    const hexOutput = document.getElementById('hexOutput');
+    const fileInfo = document.getElementById('fileInfo');
+
+    // Text hash
+    document.getElementById('hashTextBtn').addEventListener('click', async () => {
+      if (!textInput.value) return alert("Please enter a message.");
+      setStatus("Hashing message...");
+      try {
+        const data = new TextEncoder().encode(textInput.value);
+        const digest = await sha1ArrayBuffer(data.buffer);
+        hexOutput.textContent = toHex(digest);
+        digestSection.classList.remove("hidden");
+        setStatus("Digest generated from message.");
+      } catch (e) {
+        setStatus("Error: " + e.message, true);
+      }
+    });
+
+    document.getElementById('clearTextBtn').addEventListener('click', () => {
+      textInput.value = '';
+      hexOutput.textContent = '—';
+      digestSection.classList.add("hidden");
+      setStatus('');
+    });
+
+    // File info
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files[0];
+      fileInfo.textContent = f ? `Selected: ${f.name} — ${f.size} bytes` : '';
+    });
+
+    // File hash
+    document.getElementById('hashFileBtn').addEventListener('click', async () => {
+      const f = fileInput.files[0];
+      if (!f) return alert("Please choose a file.");
+      setStatus("Hashing file...");
+      try {
+        const buffer = await f.arrayBuffer();
+        const digest = await sha1ArrayBuffer(buffer);
+        hexOutput.textContent = toHex(digest);
+        digestSection.classList.remove("hidden");
+        setStatus(`Digest generated from file "${f.name}".`);
+      } catch (e) {
+        setStatus("Error: " + e.message, true);
+      }
+    });
+
+    document.getElementById('clearFileBtn').addEventListener('click', () => {
+      fileInput.value = '';
+      fileInfo.textContent = '';
+      hexOutput.textContent = '—';
+      digestSection.classList.add("hidden");
+      setStatus('');
+    });
+
+    // Copy + Download
+    document.getElementById('copyHexBtn').addEventListener('click', async () => {
+      if (hexOutput.textContent==='—') return alert("Nothing to copy.");
+      await navigator.clipboard.writeText(hexOutput.textContent);
+      alert("Copied!");
+    });
+    document.getElementById('downloadHexBtn').addEventListener('click', () => {
+      if (hexOutput.textContent==='—') return alert("No hash yet.");
+      const blob = new Blob([hexOutput.textContent], {type:"text/plain"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "sha1-hex.txt";
+      a.click();
+    });
+  </script>
+</body>
+</html>
