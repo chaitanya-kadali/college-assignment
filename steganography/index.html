@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image Steganography (LSB)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Image Steganography — Encode & Decode Message</h1>
+    <p class="meta">Step 1: Load an image and enter a secret message. Step 2: Encode it. Step 3: Download or extract later.</p>
+
+    <div class="row">
+      <!-- Encode Section -->
+      <div class="col">
+        <label>1) Choose Cover Image</label>
+        <input id="imgInput" type="file" accept="image/*">
+        <canvas id="canvas"></canvas>
+        <div id="capacity" class="meta"></div>
+        <small class="note">Tip: use PNG. JPEG may corrupt hidden data.</small>
+      </div>
+
+      <!-- Message Section -->
+      <div class="col">
+        <label for="message">2) Secret Message to Hide</label>
+        <textarea id="message" placeholder="Type text to hide..."></textarea>
+
+        <div style="margin-top:0.6rem;">
+          <button id="embedBtn">Encode Message</button>
+          <button id="downloadBtn" class="secondary">Download Stego PNG</button>
+          <button id="clearBtn" class="warn">Clear</button>
+        </div>
+
+        <label style="margin-top:1rem">3) Extract Message</label>
+        <div>
+          <button id="extractBtn">Decode Image</button>
+        </div>
+
+        <label style="margin-top:0.6rem">Decoded Message</label>
+        <textarea id="extracted" readonly placeholder="Extracted text will appear here..."></textarea>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // === Elements ===
+    const imgInput = document.getElementById('imgInput');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const capacityDiv = document.getElementById('capacity');
+    const messageBox = document.getElementById('message');
+    const embedBtn = document.getElementById('embedBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const extractBtn = document.getElementById('extractBtn');
+    const extractedBox = document.getElementById('extracted');
+    const clearBtn = document.getElementById('clearBtn');
+    let stegoBlobUrl = null;
+
+    // === Helpers ===
+    function updateCapacity(w, h) {
+      const capacityBytes = Math.floor((w * h * 3) / 8);
+      capacityDiv.textContent = `Image: ${w}×${h} — Capacity ≈ ${capacityBytes} bytes`;
+    }
+    function stringToBytes(str) { return new TextEncoder().encode(str); }
+    function bytesToString(bytes) { return new TextDecoder().decode(bytes); }
+
+    // === Load Image ===
+    imgInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        updateCapacity(canvas.width, canvas.height);
+        if (stegoBlobUrl) { URL.revokeObjectURL(stegoBlobUrl); stegoBlobUrl = null; }
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
+    // === Embed Function ===
+    function embedBytes(imageData, messageBytes) {
+      const pixels = imageData.data;
+      const totalBits = (messageBytes.length * 8) + 32;
+      const capacityBits = Math.floor(pixels.length / 4) * 3;
+      if (totalBits > capacityBits) throw new Error('Message too large for this image.');
+
+      // Message length (32 bits, big-endian)
+      const len = messageBytes.length;
+      const header = new Uint8Array([ (len>>>24)&255, (len>>>16)&255, (len>>>8)&255, len&255 ]);
+      const payload = new Uint8Array(header.length + messageBytes.length);
+      payload.set(header, 0); payload.set(messageBytes, 4);
+
+      let bitIndex = 0;
+      for (let pix = 0; pix < pixels.length; pix += 4) {
+        for (let ch = 0; ch < 3; ch++) {
+          const byteIndex = Math.floor(bitIndex / 8);
+          const bitPos = 7 - (bitIndex % 8);
+          if (byteIndex >= payload.length) return;
+          const bit = (payload[byteIndex] >> bitPos) & 1;
+          pixels[pix + ch] = (pixels[pix + ch] & 0xFE) | bit;
+          bitIndex++;
+        }
+      }
+    }
+
+    // === Extract Function ===
+    function extractBytes(imageData) {
+      const pixels = imageData.data;
+      let bits = [];
+
+      // Read length (32 bits)
+      for (let pix = 0; pix < pixels.length; pix += 4) {
+        for (let ch = 0; ch < 3; ch++) {
+          bits.push(pixels[pix + ch] & 1);
+          if (bits.length === 32) break;
+        }
+        if (bits.length === 32) break;
+      }
+      let len = 0;
+      bits.forEach(b => { len = (len << 1) | b; });
+
+      const totalBits = len * 8;
+      const dataBits = [];
+      let consumed = 0;
+      for (let pix = 0; pix < pixels.length; pix += 4) {
+        for (let ch = 0; ch < 3; ch++) {
+          if (consumed < 32) { consumed++; continue; }
+          if (dataBits.length >= totalBits) break;
+          dataBits.push(pixels[pix + ch] & 1);
+        }
+        if (dataBits.length >= totalBits) break;
+      }
+
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        let b = 0;
+        for (let bit = 0; bit < 8; bit++) {
+          b = (b << 1) | dataBits[i*8 + bit];
+        }
+        bytes[i] = b;
+      }
+      return bytes;
+    }
+
+    // === Encode Button ===
+    embedBtn.addEventListener('click', () => {
+      if (!canvas.width) return alert('Load an image first.');
+      const text = messageBox.value.trim();
+      if (!text) return alert('Enter a message.');
+      try {
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        embedBytes(imgData, stringToBytes(text));
+        ctx.putImageData(imgData, 0, 0);
+        extractedBox.value = text;
+        alert('Message encoded successfully!');
+      } catch (err) { alert('Error: ' + err.message); }
+    });
+
+    // === Download Button ===
+    downloadBtn.addEventListener('click', () => {
+      if (!canvas.width) return alert('No stego image available.');
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'stego.png';
+        a.click();
+      }, 'image/png');
+    });
+
+    // === Decode Button ===
+    extractBtn.addEventListener('click', () => {
+      if (!canvas.width) return alert('Load a stego image first.');
+      try {
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const bytes = extractBytes(imgData);
+        extractedBox.value = bytesToString(bytes);
+        alert('Message decoded!');
+      } catch (err) { alert('Error: ' + err.message); }
+    });
+
+    // === Clear Button ===
+    clearBtn.addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = 0; canvas.height = 0;
+      imgInput.value = ''; messageBox.value = ''; extractedBox.value = '';
+      capacityDiv.textContent = '';
+    });
+  </script>
+</body>
+</html>
