@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CNS Assignment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f5f5f5;
+    }
+    .container {
+      text-align: center;
+    }
+    button {
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button onclick="openPage('vigenere-cipher/index.html')"> Vigenere Cipher </button>
+    <button onclick="openPage('steganography/index.html')">Steganography</button>
+    <button onclick="openPage('secure-hash-algo-SHA-1/index.html')">SHA 1</button>
+  </div>
+
+  <script>
+    function openPage(path) {
+      // Open in same tab
+      window.location.href = path;
+
+      // If you prefer opening in a new tab, use:
+      // window.open(path, "_blank");
+    }
+  </script>
+</body>
+</html>
