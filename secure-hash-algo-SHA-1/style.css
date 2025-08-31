@@ -14,7 +14,7 @@ main {
   box-shadow: 0 8px 24px rgba(12,24,40,0.06);
 }
 
-h1 { font-size: 1.5rem; color: #1f2937; margin-top: 0; }
+h1 { font-size: 1.5rem; color: #ff6017; margin-top: 0; }
 h2 { font-size: 1.2rem; margin: 1rem 0 0.3rem; color: #111827; }
 
 label { display:block; margin:0.7rem 0 0.3rem; font-weight:600; color:#111827; }
@@ -39,7 +39,7 @@ textarea { min-height:120px; resize:vertical; font-family: inherit; }
 }
 
 button {
-  background:#2563eb;
+  background:#eb5625;
   color:white;
   border:none;
   padding:0.5rem 0.9rem;
@@ -47,7 +47,7 @@ button {
   cursor:pointer;
 }
 button.secondary { background:#10b981; }
-button.ghost { background:transparent; color:#2563eb; border:1px solid #c7ddff; }
+button.ghost { background:transparent; color:#eb6a25; border:1px solid #c7ddff; }
 
 .outputs { margin-top:1.2rem; }
 .outputBox {
